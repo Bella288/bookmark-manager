@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmark Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e1e4e8;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .search-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-size: 16px;
+        }
+
+        .search-container button {
+            padding: 12px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 30px;
+        }
+
+        .folders-section {
+            flex: 0 0 250px;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .folders-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .folders-list {
+            list-style: none;
+        }
+
+        .folder-item {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .folder-item:hover {
+            background: #f0f5ff;
+        }
+
+        .folder-item.active {
+            background: #e1eefd;
+            color: #3498db;
+            font-weight: 500;
+        }
+
+        .bookmarks-section {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .bookmarks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .bookmarks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .bookmark-card {
+            background: #f9fafc;
+            border-radius: 8px;
+            padding: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #eaeef2;
+        }
+
+        .bookmark-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .bookmark-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .favicon {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            object-fit: contain;
+        }
+
+        .bookmark-title {
+            font-weight: 500;
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .bookmark-url {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 12px;
+            word-break: break-all;
+        }
+
+        .bookmark-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #e1eefd;
+            color: #3498db;
+        }
+
+        .btn-secondary:hover {
+            background: #d0e4fc;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #cbd5e1;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .folders-section {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-bookmark"></i> Bookmark Manager</h1>
+            <button class="btn btn-primary" id="add-bookmark-btn">
+                <i class="fas fa-plus"></i> Add Bookmark
+            </button>
+        </header>
+
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Search bookmarks...">
+            <button id="search-btn"><i class="fas fa-search"></i> Search</button>
+        </div>
+
+        <div class="main-content">
+            <div class="folders-section">
+                <div class="folders-header">
+                    <h2>Folders</h2>
+                    <button class="btn btn-secondary" id="add-folder-btn">
+                        <i class="fas fa-folder-plus"></i>
+                    </button>
+                </div>
+                <ul class="folders-list" id="folders-list">
+                    <li class="folder-item active" data-folder="all">
+                        <span><i class="fas fa-globe"></i> All Bookmarks</span>
+                        <span class="count">12</span>
+                    </li>
+                    <li class="folder-item" data-folder="work">
+                        <span><i class="fas fa-briefcase"></i> Work</span>
+                        <span class="count">5</span>
+                    </li>
+                    <li class="folder-item" data-folder="education">
+                        <span><i class="fas fa-graduation-cap"></i> Education</span>
+                        <span class="count">3</span>
+                    </li>
+                    <li class="folder-item" data-folder="entertainment">
+                        <span><i class="fas fa-film"></i> Entertainment</span>
+                        <span class="count">4</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="bookmarks-section">
+                <div class="bookmarks-header">
+                    <h2 id="current-folder">All Bookmarks</h2>
+                    <div>
+                        <span id="bookmarks-count">12 bookmarks</span>
+                    </div>
+                </div>
+                <div class="bookmarks-grid" id="bookmarks-grid">
+                    <!-- Bookmark cards will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Bookmark Modal -->
+    <div class="modal" id="add-bookmark-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Bookmark</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="add-bookmark-form">
+                <div class="form-group">
+                    <label for="bookmark-title">Title</label>
+                    <input type="text" id="bookmark-title" required placeholder="Enter bookmark title">
+                </div>
+                <div class="form-group">
+                    <label for="bookmark-url">URL</label>
+                    <input type="url" id="bookmark-url" required placeholder="https://example.com">
+                </div>
+                <div class="form-group">
+                    <label for="bookmark-folder">Folder</label>
+                    <select id="bookmark-folder">
+                        <option value="work">Work</option>
+                        <option value="education">Education</option>
+                        <option value="entertainment">Entertainment</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Bookmark</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Folder Modal -->
+    <div class="modal" id="add-folder-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Folder</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="add-folder-form">
+                <div class="form-group">
+                    <label for="folder-name">Folder Name</label>
+                    <input type="text" id="folder-name" required placeholder="Enter folder name">
+                </div>
+                <button type="submit" class="btn btn-primary">Create Folder</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Bookmark Modal -->
+    <div class="modal" id="edit-bookmark-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Bookmark</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="edit-bookmark-form">
+                <input type="hidden" id="edit-bookmark-id">
+                <div class="form-group">
+                    <label for="edit-bookmark-title">Title</label>
+                    <input type="text" id="edit-bookmark-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-bookmark-url">URL</label>
+                    <input type="url" id="edit-bookmark-url" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-bookmark-folder">Folder</label>
+                    <select id="edit-bookmark-folder">
+                        <option value="work">Work</option>
+                        <option value="education">Education</option>
+                        <option value="entertainment">Entertainment</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Sample data for bookmarks
+        const bookmarksData = [
+            { id: 1, title: "Google Search", url: "https://google.com", folder: "work", favicon: "https://www.google.com/favicon.ico" },
+            { id: 2, title: "YouTube", url: "https://youtube.com", folder: "entertainment", favicon: "https://www.youtube.com/favicon.ico" },
+            { id: 3, title: "GitHub", url: "https://github.com", folder: "work", favicon: "https://github.com/favicon.ico" },
+            { id: 4, title: "MDN Web Docs", url: "https://developer.mozilla.org", folder: "education", favicon: "https://developer.mozilla.org/favicon.ico" },
+            { id: 5, title: "Netflix", url: "https://netflix.com", folder: "entertainment", favicon: "https://www.netflix.com/favicon.ico" },
+            { id: 6, title: "Coursera", url: "https://coursera.org", folder: "education", favicon: "https://www.coursera.org/favicon.ico" },
+            { id: 7, title: "Stack Overflow", url: "https://stackoverflow.com", folder: "work", favicon: "https://stackoverflow.com/favicon.ico" },
+            { id: 8, title: "Twitter", url: "https://twitter.com", folder: "entertainment", favicon: "https://twitter.com/favicon.ico" },
+            { id: 9, title: "Udemy", url: "https://udemy.com", folder: "education", favicon: "https://www.udemy.com/favicon.ico" },
+            { id: 10, title: "LinkedIn", url: "https://linkedin.com", folder: "work", favicon: "https://www.linkedin.com/favicon.ico" },
+            { id: 11, title: "Reddit", url: "https://reddit.com", folder: "entertainment", favicon: "https://www.reddit.com/favicon.ico" },
+            { id: 12, title: "FreeCodeCamp", url: "https://freecodecamp.org", folder: "education", favicon: "https://www.freecodecamp.org/favicon.ico" }
+        ];
+
+        // DOM Elements
+        const bookmarksGrid = document.getElementById('bookmarks-grid');
+        const foldersList = document.getElementById('folders-list');
+        const currentFolderElement = document.getElementById('current-folder');
+        const bookmarksCountElement = document.getElementById('bookmarks-count');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+
+        // Modal elements
+        const addBookmarkModal = document.getElementById('add-bookmark-modal');
+        const addFolderModal = document.getElementById('add-folder-modal');
+        const editBookmarkModal = document.getElementById('edit-bookmark-modal');
+        const closeButtons = document.querySelectorAll('.close');
+
+        // Form elements
+        const addBookmarkForm = document.getElementById('add-bookmark-form');
+        const addFolderForm = document.getElementById('add-folder-form');
+        const editBookmarkForm = document.getElementById('edit-bookmark-form');
+
+        // Button elements
+        const addBookmarkBtn = document.getElementById('add-bookmark-btn');
+        const addFolderBtn = document.getElementById('add-folder-btn');
+
+        // Current state
+        let currentFolder = 'all';
+        let bookmarks = [...bookmarksData];
+
+        // Initialize the app
+        function init() {
+            renderBookmarks();
+            setupEventListeners();
+        }
+
+        // Render bookmarks based on current folder and search
+        function renderBookmarks() {
+            let filteredBookmarks = bookmarks;
+            
+            // Filter by folder
+            if (currentFolder !== 'all') {
+                filteredBookmarks = filteredBookmarks.filter(bookmark => bookmark.folder === currentFolder);
+            }
+            
+            // Filter by search term
+            const searchTerm = searchInput.value.toLowerCase();
+            if (searchTerm) {
+                filteredBookmarks = filteredBookmarks.filter(bookmark => 
+                    bookmark.title.toLowerCase().includes(searchTerm) || 
+                    bookmark.url.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Update count
+            bookmarksCountElement.textContent = `${filteredBookmarks.length} bookmarks`;
+            
+            // Clear grid
+            bookmarksGrid.innerHTML = '';
+            
+            // Show empty state if no bookmarks
+            if (filteredBookmarks.length === 0) {
+                bookmarksGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-book-open"></i>
+                        <h3>No bookmarks found</h3>
+                        <p>Try a different search or add a new bookmark</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Render bookmarks
+            filteredBookmarks.forEach(bookmark => {
+                const bookmarkElement = document.createElement('div');
+                bookmarkElement.className = 'bookmark-card';
+                bookmarkElement.innerHTML = `
+                    <div class="bookmark-header">
+                        <img src="${bookmark.favicon}" alt="Favicon" class="favicon" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzM0OThkYiI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4eiIvPjxwYXRoIGQ9Ik0wIDBoMjR2MjRIMHoiIGZpbGw9Im5vbmUiLz48L3N2Zz4='">
+                        <div class="bookmark-title">${bookmark.title}</div>
+                    </div>
+                    <div class="bookmark-url">${bookmark.url}</div>
+                    <div class="bookmark-actions">
+                        <button class="btn btn-secondary edit-btn" data-id="${bookmark.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-secondary delete-btn" data-id="${bookmark.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <a href="${bookmark.url}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+                `;
+                bookmarksGrid.appendChild(bookmarkElement);
+            });
+            
+            // Update folder counts
+            updateFolderCounts();
+        }
+
+        // Update the count of bookmarks in each folder
+        function updateFolderCounts() {
+            const folderItems = foldersList.querySelectorAll('.folder-item');
+            folderItems.forEach(item => {
+                const folder = item.dataset.folder;
+                if (folder === 'all') {
+                    item.querySelector('.count').textContent = bookmarks.length;
+                } else {
+                    const count = bookmarks.filter(b => b.folder === folder).length;
+                    item.querySelector('.count').textContent = count;
+                }
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Folder selection
+            foldersList.addEventListener('click', (e) => {
+                const folderItem = e.target.closest('.folder-item');
+                if (folderItem) {
+                    // Update active state
+                    foldersList.querySelectorAll('.folder-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    folderItem.classList.add('active');
+                    
+                    // Update current folder and render
+                    currentFolder = folderItem.dataset.folder;
+                    currentFolderElement.textContent = folderItem.querySelector('span').textContent;
+                    renderBookmarks();
+                }
+            });
+            
+            // Search functionality
+            searchBtn.addEventListener('click', renderBookmarks);
+            searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    renderBookmarks();
+                }
+            });
+            
+            // Open modals
+            addBookmarkBtn.addEventListener('click', () => {
+                addBookmarkModal.style.display = 'flex';
+            });
+            
+            addFolderBtn.addEventListener('click', () => {
+                addFolderModal.style.display = 'flex';
+            });
+            
+            // Close modals
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    addBookmarkModal.style.display = 'none';
+                    addFolderModal.style.display = 'none';
+                    editBookmarkModal.style.display = 'none';
+                });
+            });
+            
+            // Click outside modal to close
+            window.addEventListener('click', (e) => {
+                if (e.target === addBookmarkModal) {
+                    addBookmarkModal.style.display = 'none';
+                }
+                if (e.target === addFolderModal) {
+                    addFolderModal.style.display = 'none';
+                }
+                if (e.target === editBookmarkModal) {
+                    editBookmarkModal.style.display = 'none';
+                }
+            });
+            
+            // Form submissions
+            addBookmarkForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const title = document.getElementById('bookmark-title').value;
+                const url = document.getElementById('bookmark-url').value;
+                const folder = document.getElementById('bookmark-folder').value;
+                
+                // Generate a favicon URL
+                const domain = new URL(url).hostname;
+                const favicon = `https://www.google.com/s2/favicons?domain=${domain}`;
+                
+                // Create new bookmark
+                const newBookmark = {
+                    id: Date.now(), // Simple ID generation
+                    title,
+                    url,
+                    folder,
+                    favicon
+                };
+                
+                bookmarks.push(newBookmark);
+                renderBookmarks();
+                
+                // Reset form and close modal
+                addBookmarkForm.reset();
+                addBookmarkModal.style.display = 'none';
+            });
+            
+            addFolderForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const folderName = document.getElementById('folder-name').value;
+                const folderId = folderName.toLowerCase().replace(/\s+/g, '-');
+                
+                // Add new folder to the list
+                const newFolderItem = document.createElement('li');
+                newFolderItem.className = 'folder-item';
+                newFolderItem.dataset.folder = folderId;
+                newFolderItem.innerHTML = `
+                    <span><i class="fas fa-folder"></i> ${folderName}</span>
+                    <span class="count">0</span>
+                `;
+                
+                foldersList.appendChild(newFolderItem);
+                
+                // Add folder to select options
+                const option = document.createElement('option');
+                option.value = folderId;
+                option.textContent = folderName;
+                document.getElementById('bookmark-folder').appendChild(option.cloneNode(true));
+                document.getElementById('edit-bookmark-folder').appendChild(option);
+                
+                // Reset form and close modal
+                addFolderForm.reset();
+                addFolderModal.style.display = 'none';
+            });
+            
+            // Edit and delete bookmarks
+            bookmarksGrid.addEventListener('click', (e) => {
+                // Edit button
+                if (e.target.closest('.edit-btn')) {
+                    const id = parseInt(e.target.closest('.edit-btn').dataset.id);
+                    const bookmark = bookmarks.find(b => b.id === id);
+                    
+                    if (bookmark) {
+                        document.getElementById('edit-bookmark-id').value = bookmark.id;
+                        document.getElementById('edit-bookmark-title').value = bookmark.title;
+                        document.getElementById('edit-bookmark-url').value = bookmark.url;
+                        document.getElementById('edit-bookmark-folder').value = bookmark.folder;
+                        
+                        editBookmarkModal.style.display = 'flex';
+                    }
+                }
+                
+                // Delete button
+                if (e.target.closest('.delete-btn')) {
+                    const id = parseInt(e.target.closest('.delete-btn').dataset.id);
+                    if (confirm('Are you sure you want to delete this bookmark?')) {
+                        bookmarks = bookmarks.filter(b => b.id !== id);
+                        renderBookmarks();
+                    }
+                }
+            });
+            
+            // Edit form submission
+            editBookmarkForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = parseInt(document.getElementById('edit-bookmark-id').value);
+                const title = document.getElementById('edit-bookmark-title').value;
+                const url = document.getElementById('edit-bookmark-url').value;
+                const folder = document.getElementById('edit-bookmark-folder').value;
+                
+                // Update bookmark
+                const index = bookmarks.findIndex(b => b.id === id);
+                if (index !== -1) {
+                    bookmarks[index].title = title;
+                    bookmarks[index].url = url;
+                    bookmarks[index].folder = folder;
+                    
+                    renderBookmarks();
+                    editBookmarkModal.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize the app when the DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
